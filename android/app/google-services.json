@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "461067728505",
+    "firebase_url": "https://racesapp-b9e02.firebaseio.com",
+    "project_id": "racesapp-b9e02",
+    "storage_bucket": "racesapp-b9e02.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461067728505:android:d629d9f834d982fd2b06a8",
+        "android_client_info": {
+          "package_name": "com.gtappdevelopers.firebase_push_notification"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "461067728505-qf2bfvrn9kn5v57fc0sttv2167a6hcdr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh-hr54fv0IXV82SiUHFZKtRZwv7O1N08"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "461067728505-qf2bfvrn9kn5v57fc0sttv2167a6hcdr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
