@@ -1,157 +1,65 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_push_notification/email_auth/forget_password_page.dart';
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:provider/provider.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Handling a background message: ${message.messageId}");
-}
+import 'email_auth/authentication_service.dart';
+import 'email_auth/home_screen.dart';
+import 'email_auth/signin_screen.dart';
+import 'email_auth/signup_screen.dart';
+
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return OverlaySupport(
+    return MultiProvider(
+      providers: [
+        // 2
+        Provider<AuthenticationService>(
+          create: (_) => AuthenticationService(FirebaseAuth.instance),
+        ),
+        // 3
+        StreamProvider(
+          create: (context) =>
+              context.read<AuthenticationService>().authStateChanges,
+          initialData: null,
+        )
+      ],
       child: MaterialApp(
-        title: 'Firebase Push Notification',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        title: 'Flutter Firebase Auth',
         debugShowCheckedModeBanner: false,
-        home: HomePage(),
+        theme: ThemeData(
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            primaryColor: Colors.indigoAccent),
+        initialRoute: '/auth',
+        routes: {
+          '/auth': (context) => AuthenticationWrapper(),
+          '/signin': (context) => SignIn(),
+          '/signup': (context) => SignUp(),
+          '/home': (context) => Home(),
+          '/resetPassword': (context) => ForgetPassword(),
+        },
       ),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  FirebaseMessaging _messaging;
-  PushNotification _notificationInfo;
-
-  void registerNotification() async {
-    await Firebase.initializeApp();
-    _messaging = FirebaseMessaging.instance;
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    NotificationSettings settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      provisional: false,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print(
-            'Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
-
-        // Parse the message received
-        PushNotification notification = PushNotification(
-          title: message.notification?.title,
-          body: message.notification?.body,
-          dataTitle: message.data['title'],
-          dataBody: message.data['body'],
-        );
-
-        setState(() {
-          _notificationInfo = notification;
-        });
-
-        if (_notificationInfo != null) {
-          showSimpleNotification(
-            Text(_notificationInfo.title),
-            subtitle: Text(_notificationInfo.body),
-            background: Colors.cyan.shade700,
-            duration: Duration(seconds: 2),
-          );
-        }
-      });
-    } else {
-      print('User declined or has not accepted permission');
-    }
-  }
-
-  // For handling notification when the app is in terminated state
-  checkForInitialMessage() async {
-    await Firebase.initializeApp();
-    RemoteMessage initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
-
-    if (initialMessage != null) {
-      PushNotification notification = PushNotification(
-        title: initialMessage.notification?.title,
-        body: initialMessage.notification?.body,
-        dataTitle: initialMessage.data['title'],
-        dataBody: initialMessage.data['body'],
-      );
-
-      setState(() {
-        _notificationInfo = notification;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    registerNotification();
-    checkForInitialMessage();
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      PushNotification notification = PushNotification(
-        title: message.notification?.title,
-        body: message.notification?.body,
-        dataTitle: message.data['title'],
-        dataBody: message.data['body'],
-      );
-
-      setState(() {
-        _notificationInfo = notification;
-      });
-    });
-
-    super.initState();
-  }
-
+class AuthenticationWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Firebase Push Notification'),
-      ),
-      body: Center(
-        child: Text(
-          'Firebase Push Notifications App',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-          ),
-        ),
-      ),
-    );
+    final firebaseuser = context.watch<User>();
+    if (firebaseuser != null) {
+      return Home();
+    }
+    return SignIn();
   }
-}
-
-class PushNotification {
-  PushNotification({
-    this.title,
-    this.body,
-    this.dataTitle,
-    this.dataBody,
-  });
-
-  String title;
-  String body;
-  String dataTitle;
-  String dataBody;
 }
